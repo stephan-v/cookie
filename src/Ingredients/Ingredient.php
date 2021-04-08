@@ -101,16 +101,16 @@ class Ingredient implements IngredientInterface
     /**
      * @inheritDoc
      */
-    public function getTexture(): int
+    public function getName(): string
     {
-        return $this->texture;
+        return $this->name;
     }
 
     /**
      * @inheritDoc
      */
-    public function getName(): string
+    public function getTexture(): int
     {
-        return $this->name;
+        return $this->texture;
     }
 }

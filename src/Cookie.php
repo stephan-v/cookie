@@ -25,23 +25,28 @@ class Cookie
     }
 
     /**
-     * Get the optimal score of the cookie.
+     * Calculate the total cookie score.
      *
-     * @return int The product of all dunked cookie properties with the exception of calories.
+     * @param int $capacity The total capacity score of the cookie.
+     * @param int $durability The total durability score of the cookie.
+     * @param int $flavor The total flavor score of the cookie.
+     * @param int $texture The total texture score of the cookie.
+     * @return int The final cookie score.
      */
-    public function getOptimalScore(): int
+    private function calculateCookieScore(int $capacity, int $durability, int $flavor, int $texture): int
     {
-        $optimalScore = 0;
+        $scores = [
+            $capacity,
+            $durability,
+            $flavor,
+            $texture,
+        ];
 
-        foreach ($this->getDistributionCombinations(100, count($this->ingredients)) as $divisionOfTotal) {
-            $score = $this->getCookieScore($divisionOfTotal);
+        // Set any negative values to zero.
+        $unsignedScores = array_map(fn(int $score) => max(0, $score), $scores);
 
-            if ($score > $optimalScore) {
-                $optimalScore = $score;
-            }
-        }
-
-        return $optimalScore;
+        // Multiple all values.
+        return array_product($unsignedScores);
     }
 
     /**
@@ -52,27 +57,28 @@ class Cookie
      */
     private function getCookieScore(array $divisionOfTotal): int
     {
-        $scorePerProperty = [
+        $scores = [
             'capacity' => 0,
             'durability' => 0,
             'flavor' => 0,
             'texture' => 0,
+            'calories' => 0,
         ];
 
         foreach ($this->ingredients as $key => $ingredient) {
-            $scorePerProperty['capacity'] += $ingredient->getCapacity() * $divisionOfTotal[$key];
-            $scorePerProperty['durability'] += $ingredient->getDurability() * $divisionOfTotal[$key];
-            $scorePerProperty['flavor'] += $ingredient->getFlavor() * $divisionOfTotal[$key];
-            $scorePerProperty['texture'] += $ingredient->getTexture() * $divisionOfTotal[$key];
+            $scores['capacity'] += $ingredient->getCapacity() * $divisionOfTotal[$key];
+            $scores['durability'] += $ingredient->getDurability() * $divisionOfTotal[$key];
+            $scores['flavor'] += $ingredient->getFlavor() * $divisionOfTotal[$key];
+            $scores['texture'] += $ingredient->getTexture() * $divisionOfTotal[$key];
+            $scores['calories'] += $ingredient->getTexture() * $divisionOfTotal[$key];
         }
 
-        // Get the values.
-        $scores = array_values($scorePerProperty);
-
-        // Set any negative values to zero.
-        $unsignedScores = array_map(fn(int $score) => max(0, $score), $scores);
-
-        return array_product($unsignedScores);
+        return $this->calculateCookieScore(
+            $scores['capacity'],
+            $scores['durability'],
+            $scores['flavor'],
+            $scores['texture']
+        );
     }
 
     /**
@@ -103,5 +109,25 @@ class Cookie
                 yield array_merge([$i], $j);
             }
         }
+    }
+
+    /**
+     * Get the optimal score of the cookie.
+     *
+     * @return int The product of all dunked cookie properties with the exception of calories.
+     */
+    public function getOptimalScore(): int
+    {
+        $optimalScore = 0;
+
+        foreach ($this->getDistributionCombinations(100, count($this->ingredients)) as $divisionOfTotal) {
+            $score = $this->getCookieScore($divisionOfTotal);
+
+            if ($score > $optimalScore) {
+                $optimalScore = $score;
+            }
+        }
+
+        return $optimalScore;
     }
 }
