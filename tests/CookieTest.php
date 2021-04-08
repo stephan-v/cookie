@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 final class CookieTest extends TestCase
 {
     /**
-     * Test that the optimal cookie score is calculated correctly with a known correct value.
+     * Test that the optimal cookie score is calculated correctly with a known correct output value.
      */
     public function testCookieOutputIsCalculatedCorrectly()
     {
