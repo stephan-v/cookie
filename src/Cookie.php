@@ -50,12 +50,12 @@ class Cookie
     }
 
     /**
-     * Get the score for the current division of ingredients.
+     * Get the cookie scores per cookie property.
      *
      * @param int[] $divisionOfTotal The possible combinations of teaspoons per ingredient.
-     * @return int The total score.
+     * @return array The score per cookie property.
      */
-    private function getCookieScore(array $divisionOfTotal): int
+    private function getCookieScoresPerProperty(array $divisionOfTotal): array
     {
         $scores = [
             'capacity' => 0,
@@ -70,15 +70,10 @@ class Cookie
             $scores['durability'] += $ingredient->getDurability() * $divisionOfTotal[$key];
             $scores['flavor'] += $ingredient->getFlavor() * $divisionOfTotal[$key];
             $scores['texture'] += $ingredient->getTexture() * $divisionOfTotal[$key];
-            $scores['calories'] += $ingredient->getTexture() * $divisionOfTotal[$key];
+            $scores['calories'] += $ingredient->getCalories() * $divisionOfTotal[$key];
         }
 
-        return $this->calculateCookieScore(
-            $scores['capacity'],
-            $scores['durability'],
-            $scores['flavor'],
-            $scores['texture']
-        );
+        return $scores;
     }
 
     /**
@@ -114,16 +109,28 @@ class Cookie
     /**
      * Get the optimal score of the cookie.
      *
+     * @param int|null $calories The optional calorie requirement.
      * @return int The product of all dunked cookie properties with the exception of calories.
      */
-    public function getOptimalScore(): int
+    public function getOptimalScore(int $calories = null): int
     {
         $optimalScore = 0;
 
         foreach ($this->getDistributionCombinations(100, count($this->ingredients)) as $divisionOfTotal) {
-            $score = $this->getCookieScore($divisionOfTotal);
+            $scores = $this->getCookieScoresPerProperty($divisionOfTotal);
+            $score = $this->calculateCookieScore(
+                $scores['capacity'],
+                $scores['durability'],
+                $scores['flavor'],
+                $scores['texture']
+            );
 
-            if ($score > $optimalScore) {
+            // Conditions.
+            $isScoreImprovement = $score > $optimalScore;
+            $matchesCalorieRequirement = $calories === $scores['calories'];
+
+            // Requirements.
+            if (($matchesCalorieRequirement && $isScoreImprovement) || ($isScoreImprovement && !$calories)) {
                 $optimalScore = $score;
             }
         }
