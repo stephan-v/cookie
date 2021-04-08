@@ -52,7 +52,7 @@ class Cookie
     /**
      * Get the cookie scores per cookie property.
      *
-     * @param int[] $divisionOfTotal The possible combinations of teaspoons per ingredient.
+     * @param int[] $divisionOfTotal The possible permutations of teaspoons per ingredient.
      * @return array The score per cookie property.
      */
     private function getCookieScoresPerProperty(array $divisionOfTotal): array
@@ -77,13 +77,13 @@ class Cookie
     }
 
     /**
-     * Get all possible combinations of a total in x groups.
+     * Get all possible permutations of a sum total in x groups.
      *
      * @param int $total The total amount to distribute amongst the given amount of groups.
      * @param int $groups The groups which these values can be distributed amongst.
      * @return Generator A generator function which can generate the distributed array.
      */
-    private function getDistributionCombinations(int $total, int $groups): Generator
+    private function getDistributionPermutation(int $total, int $groups): Generator
     {
         // A single group has nothing to distribute so we can push the total directly into an array.
         if ($groups === 1) {
@@ -99,7 +99,7 @@ class Cookie
             // For example if we had 4 groups we now go down to 3 and distribute our remaining total amongst those.
             $remainingGroups = $groups - 1;
 
-            foreach ($this->getDistributionCombinations($remainingTotal, $remainingGroups) as $j) {
+            foreach ($this->getDistributionPermutation($remainingTotal, $remainingGroups) as $j) {
                 // Merge the current iteration together with the yielded array of the next one.
                 yield array_merge([$i], $j);
             }
@@ -116,7 +116,7 @@ class Cookie
     {
         $optimalScore = 0;
 
-        foreach ($this->getDistributionCombinations(100, count($this->ingredients)) as $divisionOfTotal) {
+        foreach ($this->getDistributionPermutation(100, count($this->ingredients)) as $divisionOfTotal) {
             $scores = $this->getCookieScoresPerProperty($divisionOfTotal);
             $score = $this->calculateCookieScore(
                 $scores['capacity'],
